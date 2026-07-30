@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Sup!? Mobile - Decentralized Explorer & Etcher</title>
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="css/style.css">
+  <!-- Lucide Icons via CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- CryptoLibs (e.g. bitcoinjs-lib or ecc / crypto-js for fully client-side wallet functions) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js" integrity="sha512-E8QSvWZ06DLCDuToUzRqMkhTX6q3IPRDc3n0c6pM7R3zuaG17g351IFGPup16G6vA8uxX+KqHZIE5G3IL8vKdw==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+</head>
+<body class="text-slate-100 min-h-screen flex flex-col pb-16">
+
+  <!-- TOP HEADER -->
+  <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50 px-4 py-3 flex items-center justify-between shadow-md">
+    <div class="flex items-center gap-2">
+      <span class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-orange-500 via-yellow-400 to-green-500 bg-clip-text text-transparent">SUP!?</span>
+      <span class="text-xs text-slate-400 font-semibold uppercase tracking-widest bg-slate-900 px-1.5 py-0.5 rounded border border-slate-700">Mobile</span>
+    </div>
+
+    <!-- NETWORK TOGGLE -->
+    <div class="flex items-center gap-2">
+      <button id="network-toggle" class="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border transition-all shadow-sm bg-green-950/40 text-green-400 border-green-500/50 glow-testnet">
+        <span class="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse"></span>
+        <span id="network-label">TESTNET</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN APP CONTAINER -->
+  <main id="app-content" class="flex-1 p-4 max-w-md mx-auto w-full">
+
+    <!-- BROWSE SECTION -->
+    <section id="tab-browse" class="tab-content space-y-4">
+      <div class="bg-slate-800/80 backdrop-blur rounded-2xl border border-slate-700 p-4 shadow-xl">
+        <h2 class="text-lg font-bold mb-3 flex items-center gap-2 text-slate-200">
+          <i data-lucide="search" class="h-5 w-5 text-indigo-400"></i>
+          P2FK Explorer
+        </h2>
+
+        <!-- Search bar & input -->
+        <div class="space-y-2">
+          <div class="relative">
+            <input id="search-input" type="text" placeholder="Address, TxID, @URN, or #Keyword..."
+              class="w-full bg-slate-900 border border-slate-700 rounded-xl py-3 pl-4 pr-12 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all">
+            <button id="search-button" class="absolute right-2 top-2 bg-indigo-600 hover:bg-indigo-500 text-white p-1.5 rounded-lg transition-all">
+              <i data-lucide="arrow-right" class="h-5 w-5"></i>
+            </button>
+          </div>
+          <div class="flex flex-wrap gap-1.5 pt-1 text-xs text-slate-400">
+            <span class="font-semibold text-slate-500">Quick:</span>
+            <button class="quick-tag bg-slate-900 hover:bg-slate-700 px-2 py-0.5 rounded border border-slate-800 transition-all">@embii4u</button>
+            <button class="quick-tag bg-slate-900 hover:bg-slate-700 px-2 py-0.5 rounded border border-slate-800 transition-all">#Love</button>
+            <button class="quick-tag bg-slate-900 hover:bg-slate-700 px-2 py-0.5 rounded border border-slate-800 transition-all">#game</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- FILTER SWITCHES & OFFLINE TOGGLE -->
+      <div class="bg-slate-800/80 backdrop-blur rounded-2xl border border-slate-700 p-4 shadow-xl space-y-3">
+        <div class="flex justify-between items-center pb-2 border-b border-slate-700">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Filter Parsed Data</span>
+          <button id="reset-filters" class="text-xs text-indigo-400 hover:text-indigo-300 font-semibold">Reset All</button>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-xs">
+          <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer hover:bg-slate-900 transition-all">
+            <input type="checkbox" id="filter-profile" checked class="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500">
+            <span>Profiles (@)</span>
+          </label>
+          <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer hover:bg-slate-900 transition-all">
+            <input type="checkbox" id="filter-object" checked class="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500">
+            <span>Objects (NFTs)</span>
+          </label>
+          <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer hover:bg-slate-900 transition-all">
+            <input type="checkbox" id="filter-message" checked class="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500">
+            <span>Messages (#)</span>
+          </label>
+          <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer hover:bg-slate-900 transition-all">
+            <input type="checkbox" id="filter-signatures" checked class="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500">
+            <span>Signatures</span>
+          </label>
+          <label class="flex items-center gap-2 bg-slate-900/60 p-2.5 rounded-xl border border-slate-800 cursor-pointer hover:bg-slate-900 transition-all col-span-2">
+            <input type="checkbox" id="filter-raw" checked class="rounded border-slate-700 text-indigo-600 focus:ring-indigo-500">
+            <span>Raw Transaction JSON</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- SEARCH RESULTS CONTAINER -->
+      <div id="search-status" class="hidden text-center text-xs text-slate-400 bg-slate-900/50 p-3 rounded-xl border border-slate-800">
+        <div class="animate-spin inline-block w-4 h-4 border-[2px] border-indigo-500 border-t-transparent rounded-full mr-2"></div>
+        Searching P2FK universe...
+      </div>
+
+      <div id="search-results" class="space-y-4">
+        <!-- Welcoming card -->
+        <div class="bg-slate-800/40 rounded-2xl border border-slate-800 p-6 text-center space-y-2">
+          <i data-lucide="globe" class="h-10 w-10 text-slate-500 mx-auto"></i>
+          <p class="text-sm font-semibold text-slate-300">Explore the decentralised on-chain web.</p>
+          <p class="text-xs text-slate-500">Search by blockchain addresses, transactional IDs, #Keywords, or @URN handles above to parse on-chain data.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ETCH / MINT SECTION -->
+    <section id="tab-etch" class="tab-content space-y-4 hidden">
+      <div class="bg-slate-800/80 backdrop-blur rounded-2xl border border-slate-700 p-4 shadow-xl">
+        <h2 class="text-lg font-bold mb-3 flex items-center gap-2 text-slate-200">
+          <i data-lucide="edit-3" class="h-5 w-5 text-emerald-400"></i>
+          Etch Data / Mint
+        </h2>
+
+        <!-- Type Selector -->
+        <div class="flex bg-slate-900 p-1 rounded-xl mb-4 text-xs font-semibold">
+          <button id="btn-etch-msg" class="flex-1 py-2 text-center rounded-lg bg-indigo-600 text-white transition-all">Message</button>
+          <button id="btn-etch-profile" class="flex-1 py-2 text-center rounded-lg text-slate-400 hover:text-slate-200 transition-all">Profile</button>
+          <button id="btn-etch-object" class="flex-1 py-2 text-center rounded-lg text-slate-400 hover:text-slate-200 transition-all">Object</button>
+        </div>
+
+        <!-- Forms -->
+        <form id="etch-form" class="space-y-4">
+          <!-- Type Message -->
+          <div id="form-message" class="space-y-3">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Recipient Address (Optional for Public msg)</label>
+              <input type="text" id="msg-recipient" placeholder="Recipient address..."
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Keywords / Hashtags (Separated by space)</label>
+              <input type="text" id="msg-keywords" placeholder="#Love #Game #Sup..."
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Message Body</label>
+              <textarea id="msg-body" rows="3" placeholder="Compose decentralized public message..."
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"></textarea>
+            </div>
+          </div>
+
+          <!-- Type Profile -->
+          <div id="form-profile" class="space-y-3 hidden">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">URN / Shortname (Unique username handle)</label>
+              <input type="text" id="pro-urn" placeholder="e.g. Satoshi"
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Full Name</label>
+              <input type="text" id="pro-name" placeholder="Full legal or screen name"
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">PFP Image URL (IPFS or Web link)</label>
+              <input type="text" id="pro-pfp" placeholder="ipfs://Qm... or https://..."
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Short Bio</label>
+              <textarea id="pro-bio" rows="2" placeholder="Tell the blockchain who you are..."
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500"></textarea>
+            </div>
+          </div>
+
+          <!-- Type Object -->
+          <div id="form-object" class="space-y-3 hidden">
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Object Name</label>
+              <input type="text" id="obj-name" placeholder="e.g. Genesis Fossil"
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">URN Reference / Unique Link</label>
+              <input type="text" id="obj-urn" placeholder="e.g. artifact.zip"
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Quantity to Mint</label>
+              <input type="number" id="obj-qty" value="1" min="1"
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Royalties Recipient & % (e.g. Address:Percent)</label>
+              <input type="text" id="obj-royalties" placeholder="muVr...:10"
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none focus:ring-1 focus:ring-emerald-500">
+            </div>
+          </div>
+
+          <!-- Action buttons -->
+          <div class="pt-2 flex gap-3">
+            <button type="button" id="btn-generate-p2fk" class="flex-1 bg-slate-700 hover:bg-slate-600 text-xs font-bold py-3 rounded-xl transition-all">
+              Inspect P2FK payload
+            </button>
+            <button type="submit" class="flex-1 bg-emerald-600 hover:bg-emerald-500 text-xs font-bold py-3 rounded-xl transition-all text-white flex items-center justify-center gap-1">
+              <i data-lucide="send" class="h-4 w-4"></i>
+              Broadcast Etch
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- PAYLOAD INSPECTOR MODAL/BOX -->
+      <div id="p2fk-payload-box" class="hidden bg-slate-950/60 rounded-2xl border border-slate-800 p-4 space-y-2">
+        <div class="flex justify-between items-center">
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">P2FK Compliant JSON</span>
+          <button id="btn-close-payload" class="text-slate-500 hover:text-slate-300 text-xs">Close</button>
+        </div>
+        <pre id="p2fk-payload-json" class="text-[10px] text-emerald-400 bg-slate-950 p-3 rounded-lg overflow-x-auto max-h-48"></pre>
+        <p class="text-[10px] text-slate-500">Ready to be written using the Satoshi Pay-to-Future-Key (P2FK) multi-protocol standards.</p>
+      </div>
+    </section>
+
+    <!-- WALLET SECTION -->
+    <section id="tab-wallet" class="tab-content space-y-4 hidden">
+      <div class="bg-slate-800/80 backdrop-blur rounded-2xl border border-slate-700 p-4 shadow-xl">
+        <h2 class="text-lg font-bold mb-3 flex items-center gap-2 text-slate-200">
+          <i data-lucide="wallet" class="h-5 w-5 text-orange-400"></i>
+          Secure Mobile Wallet
+        </h2>
+
+        <!-- Locked view / Login -->
+        <div id="wallet-locked" class="space-y-4 py-4">
+          <p class="text-xs text-slate-400 text-center">Your private keys never leave this phone. They are stored securely using browser AES encryption.</p>
+
+          <div id="wallet-setup-choices" class="grid grid-cols-2 gap-3 pt-2">
+            <button id="btn-wallet-choice-create" class="bg-indigo-600 hover:bg-indigo-500 py-3 rounded-xl font-bold text-xs transition-all">Generate Wallet</button>
+            <button id="btn-wallet-choice-import" class="bg-slate-700 hover:bg-slate-600 py-3 rounded-xl font-bold text-xs transition-all">Import WIF key</button>
+          </div>
+
+          <div id="wallet-setup-form" class="hidden space-y-3 pt-2 border-t border-slate-700/60">
+            <div id="wif-import-field" class="hidden">
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Enter WIF Private Key</label>
+              <input type="password" id="input-wif" placeholder="e.g. cV1r..."
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none">
+            </div>
+            <div>
+              <label class="block text-xs font-semibold text-slate-400 mb-1">Set Wallet Password</label>
+              <input type="password" id="wallet-pass" placeholder="Minimum 4 characters..."
+                class="w-full bg-slate-900 border border-slate-700 rounded-xl p-3 text-sm focus:outline-none">
+            </div>
+            <button id="btn-wallet-submit" class="w-full bg-orange-600 hover:bg-orange-500 py-3 rounded-xl font-bold text-xs transition-all text-white">
+              Save Keys Securely
+            </button>
+          </div>
+        </div>
+
+        <!-- Unlocked View -->
+        <div id="wallet-unlocked" class="hidden space-y-4">
+          <div class="bg-slate-900/80 rounded-xl border border-slate-800 p-4 relative overflow-hidden">
+            <div class="absolute -right-6 -bottom-6 opacity-5">
+              <i data-lucide="bitcoin" class="h-24 w-24"></i>
+            </div>
+            <div class="flex justify-between items-center mb-1">
+              <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Active Address</span>
+              <button id="btn-copy-address" class="text-indigo-400 text-[10px] flex items-center gap-1">
+                <i data-lucide="copy" class="h-3 w-3"></i> Copy
+              </button>
+            </div>
+            <div id="wallet-address" class="text-xs font-mono text-indigo-300 break-all select-all">muVrFVk3ErfrnmWosLF4WixxRtDKfMx9bs</div>
+
+            <div class="mt-4 flex justify-between items-end">
+              <div>
+                <span class="text-[10px] text-slate-500 font-bold uppercase tracking-widest">Balance</span>
+                <div id="wallet-balance" class="text-xl font-extrabold text-slate-100 flex items-baseline gap-1">
+                  0.00000000 <span class="text-xs text-slate-500">tBTC</span>
+                </div>
+              </div>
+              <button id="btn-refresh-balance" class="bg-slate-800 p-2 rounded-lg border border-slate-700 text-slate-400 hover:text-slate-100 transition-all">
+                <i data-lucide="refresh-cw" class="h-4 w-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <!-- Send Funds Form -->
+          <div class="bg-slate-900/30 rounded-xl border border-slate-800 p-3 space-y-3">
+            <h3 class="text-xs font-bold text-slate-400 uppercase tracking-wider">Send Coins / Prepare funds</h3>
+            <div class="space-y-2">
+              <input type="text" id="send-to-address" placeholder="Recipient address..." class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none">
+              <input type="number" id="send-amount" placeholder="Amount (BTC)..." step="any" class="w-full bg-slate-900 border border-slate-800 rounded-lg p-2.5 text-xs text-slate-100 placeholder-slate-500 focus:outline-none">
+              <button id="btn-send-coins" class="w-full bg-indigo-600 hover:bg-indigo-500 py-2 rounded-lg text-xs font-bold text-white transition-all">
+                Transfer Coins
+              </button>
+            </div>
+          </div>
+
+          <!-- Danger actions / export -->
+          <div class="flex justify-between gap-2 text-xs">
+            <button id="btn-export-wif" class="flex-1 bg-slate-700/60 hover:bg-slate-700/80 p-2.5 rounded-xl border border-slate-800 text-slate-400 text-center font-semibold">
+              Export WIF Key
+            </button>
+            <button id="btn-lock-wallet" class="flex-1 bg-red-950/40 hover:bg-red-950/80 border border-red-900/40 p-2.5 rounded-xl text-red-400 text-center font-semibold">
+              Lock Wallet
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- SETTINGS & OFFLINE CONFIGURATION SECTION -->
+    <section id="tab-settings" class="tab-content space-y-4 hidden">
+      <div class="bg-slate-800/80 backdrop-blur rounded-2xl border border-slate-700 p-4 shadow-xl">
+        <h2 class="text-lg font-bold mb-3 flex items-center gap-2 text-slate-200">
+          <i data-lucide="settings" class="h-5 w-5 text-indigo-400"></i>
+          Settings & Offline Mode
+        </h2>
+
+        <!-- Offline parsed files import -->
+        <div class="bg-slate-900/60 rounded-xl border border-slate-800 p-4 space-y-3">
+          <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider">Fully Offline Mode</h3>
+          <p class="text-[11px] text-slate-500 leading-relaxed">
+            By importing your local Sup database index files, you can browse profiles, objects, and message feeds fully offline directly on your phone or tablet.
+          </p>
+
+          <!-- File Uploads -->
+          <div class="space-y-2 pt-1 text-xs">
+            <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+              <span class="text-slate-400">ROOT.json (Index)</span>
+              <label class="cursor-pointer text-indigo-400 hover:text-indigo-300 font-bold">
+                Upload
+                <input type="file" id="upload-root" accept=".json" class="hidden">
+              </label>
+            </div>
+            <div id="status-root" class="text-[10px] text-slate-500 text-right px-1">No database index loaded</div>
+
+            <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+              <span class="text-slate-400">OBJ.json (Objects)</span>
+              <label class="cursor-pointer text-indigo-400 hover:text-indigo-300 font-bold">
+                Upload
+                <input type="file" id="upload-obj" accept=".json" class="hidden">
+              </label>
+            </div>
+            <div id="status-obj" class="text-[10px] text-slate-500 text-right px-1">No objects database loaded</div>
+
+            <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+              <span class="text-slate-400">PRO.json (Profiles)</span>
+              <label class="cursor-pointer text-indigo-400 hover:text-indigo-300 font-bold">
+                Upload
+                <input type="file" id="upload-pro" accept=".json" class="hidden">
+              </label>
+            </div>
+            <div id="status-pro" class="text-[10px] text-slate-500 text-right px-1">No profiles database loaded</div>
+
+            <div class="flex items-center justify-between bg-slate-950 p-2.5 rounded-lg border border-slate-800">
+              <span class="text-slate-400">MSG.json (Messages)</span>
+              <label class="cursor-pointer text-indigo-400 hover:text-indigo-300 font-bold">
+                Upload
+                <input type="file" id="upload-msg" accept=".json" class="hidden">
+              </label>
+            </div>
+            <div id="status-msg" class="text-[10px] text-slate-500 text-right px-1">No message feeds loaded</div>
+          </div>
+
+          <button id="btn-clear-offline" class="w-full bg-slate-800 hover:bg-slate-750 border border-slate-700 py-2.5 rounded-xl text-xs font-semibold text-slate-300 transition-all">
+            Clear Cached Offline Data
+          </button>
+        </div>
+
+        <!-- API Node Configuration -->
+        <div class="bg-slate-900/60 rounded-xl border border-slate-800 p-4 space-y-3">
+          <h3 class="text-xs font-bold uppercase text-slate-400 tracking-wider">Custom P2FK API Nodes</h3>
+
+          <div class="space-y-3 text-xs">
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-500 mb-1">Bitcoin Mainnet Node</label>
+              <input type="text" id="api-mainnet-url" value="https://p2fk.io"
+                class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            </div>
+            <div>
+              <label class="block text-[11px] font-semibold text-slate-500 mb-1">Bitcoin Testnet Node</label>
+              <input type="text" id="api-testnet-url" value="https://p2fk.io"
+                class="w-full bg-slate-950 border border-slate-800 rounded-lg p-2.5 font-mono focus:outline-none focus:ring-1 focus:ring-indigo-500">
+            </div>
+          </div>
+
+          <button id="btn-save-api-urls" class="w-full bg-indigo-600 hover:bg-indigo-500 py-2.5 rounded-xl text-xs font-bold transition-all text-white">
+            Save Custom Nodes
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- TRANSACTION DETAIL INSPECTOR MODAL -->
+  <div id="inspector-modal" class="hidden fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-700 w-full max-w-md rounded-2xl shadow-2xl overflow-hidden flex flex-col max-h-[85vh]">
+
+      <!-- Modal header -->
+      <div class="bg-slate-800 border-b border-slate-700 p-4 flex justify-between items-center sticky top-0">
+        <h3 class="font-extrabold text-indigo-400 flex items-center gap-2">
+          <i data-lucide="info" class="h-5 w-5"></i>
+          P2FK Fossil Details
+        </h3>
+        <button id="btn-close-inspector" class="text-slate-400 hover:text-slate-200">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-4 overflow-y-auto space-y-4 flex-1 text-sm leading-relaxed" id="inspector-body">
+        <!-- Content will be populated dynamically -->
+      </div>
+
+      <!-- Modal Footer -->
+      <div class="bg-slate-800/50 border-t border-slate-700/60 p-3 flex justify-end gap-2">
+        <button id="btn-inspector-action" class="bg-indigo-600 hover:bg-indigo-500 px-4 py-2 rounded-lg text-xs font-bold transition-all text-white">
+          OK
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAVIGATION BAR (MOBILE BOTTOM SHEET STICKY) -->
+  <nav class="fixed bottom-0 left-0 right-0 bg-slate-900/90 backdrop-blur-md border-t border-slate-800 z-50 flex max-w-md mx-auto justify-around items-center h-16 shadow-lg">
+    <button data-tab="browse" class="nav-tab flex flex-col items-center justify-center flex-1 h-full text-indigo-500 font-bold">
+      <i data-lucide="search" class="h-5 w-5 mb-0.5"></i>
+      <span class="text-[10px] tracking-wide">Browse</span>
+    </button>
+    <button data-tab="etch" class="nav-tab flex flex-col items-center justify-center flex-1 h-full text-slate-400">
+      <i data-lucide="edit-3" class="h-5 w-5 mb-0.5"></i>
+      <span class="text-[10px] tracking-wide">Etch</span>
+    </button>
+    <button data-tab="wallet" class="nav-tab flex flex-col items-center justify-center flex-1 h-full text-slate-400">
+      <i data-lucide="wallet" class="h-5 w-5 mb-0.5"></i>
+      <span class="text-[10px] tracking-wide">Wallet</span>
+    </button>
+    <button data-tab="settings" class="nav-tab flex flex-col items-center justify-center flex-1 h-full text-slate-400">
+      <i data-lucide="settings" class="h-5 w-5 mb-0.5"></i>
+      <span class="text-[10px] tracking-wide">Offline</span>
+    </button>
+  </nav>
+
+  <!-- Navigation, Core & Modules Scripts -->
+  <script src="js/wallet.js" type="module"></script>
+  <script src="js/inspector.js" type="module"></script>
+  <script src="js/browse.js" type="module"></script>
+  <script src="js/etch.js" type="module"></script>
+  <script src="js/app.js" type="module"></script>
+</body>
+</html>
